@@ -15,9 +15,12 @@ type RumContext struct {
 	ctx context.Context
 	R   *http.Request
 	W   http.ResponseWriter
+
+	handlers HandlerChain
+	index    int8
 }
 
-func NewRumContext(r *http.Request, w http.ResponseWriter) *RumContext {
+func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain) *RumContext {
 	uuid, err := NewUUID()
 	if err != nil {
 		log.Printf("Failed to generate a unique ID for request - %s", err.Error())
@@ -28,7 +31,29 @@ func NewRumContext(r *http.Request, w http.ResponseWriter) *RumContext {
 		ctx: ctx,
 		R:   r,
 		W:   w,
+
+		handlers: handlers,
+		index:    0,
 	}
+}
+
+func (rc *RumContext) Next() {
+	rc.index++
+	if int(rc.index) < len(rc.handlers) {
+		handler := rc.handlers[rc.index]
+		handler(rc)
+	}
+}
+
+func (rc *RumContext) RequestId() string {
+	if rc.ctx == nil {
+		return ""
+	}
+	reqID, ok := rc.ctx.Value(RequestIDKey).(UUID)
+	if !ok {
+		return ""
+	}
+	return reqID.String()
 }
 
 func (rc *RumContext) JSON(code int, payload any) {

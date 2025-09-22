@@ -19,3 +19,50 @@ use the bytedance/json library for JIT compiled JSON Marshalling and UnMarshalli
 The benefits of this are substantial when dealing with large JSON structures..so I may want to include 
 optional support for it.
 For the sake of simplicity I'm keep as is for now but will return to this.
+
+## Example Usage:
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/falbanese9484/rum"
+)
+
+const (
+	API_KEY = "someapi"
+)
+
+func MiddlewareTest(c *rum.RumContext) {
+	apikey := c.R.Header.Get("x-api-key")
+	if apikey != API_KEY {
+		c.JSON(401, map[string]any{
+			"error": "unauthorized",
+		})
+		return
+	} else {
+		c.Next()
+	}
+}
+
+func TestingSomething(c *rum.RumContext) {
+	c.JSON(200, map[string]any{
+		"success": "ok",
+	})
+}
+
+func main() {
+	e := rum.New()
+	e.Use(MiddlewareTest)
+	v1 := e.NewGroup("/api/v1")
+	v1.GET("/", TestingSomething)
+
+	port := ":8945"
+
+	fmt.Printf("Listening on Port: %s\n", port)
+	http.ListenAndServe(port, e)
+}
+
+```

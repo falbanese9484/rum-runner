@@ -7,22 +7,6 @@ type (
 	HandlerChain []HandlerFunc     // Chain of handlers (middleware + final handler)
 )
 
-type RouteInfo struct {
-	// HTTP method, path, and the handler name
-	Method      string
-	Path        string
-	Handler     string
-	HandlerFunc HandlerFunc
-}
-
-type RoutesInfo []RouteInfo // Slice of RouteInfo
-
-type RouterGroup struct {
-	handlers HandlerChain
-	basePath string
-	engine   *Engine
-}
-
 type Engine struct {
 	RouterGroup
 	routes map[string][]RouteInfo // Map of method to slice of RouteInfo
@@ -77,12 +61,22 @@ func (e *Engine) PATCH(path string, handler HandlerFunc) {
 	e.addRoute("PATCH", path, handler)
 }
 
+func (e *Engine) executeChain(ctx *RumContext, chain HandlerChain) {
+	handler := chain[0]
+	handler(ctx)
+}
+
+func (e *Engine) Use(handler HandlerFunc) {
+	e.handlers = append(e.handlers, handler)
+}
+
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	routes := e.routes[r.Method]
 	for _, route := range routes {
 		if route.Path == r.URL.Path {
-			ctx := NewRumContext(r, w)
-			route.HandlerFunc(ctx)
+			chain := append(e.handlers, route.HandlerFunc)
+			ctx := NewRumContext(r, w, chain)
+			e.executeChain(ctx, chain)
 			return
 		}
 	}
