@@ -61,10 +61,10 @@ func (e *Engine) PATCH(path string, handler HandlerFunc) {
 	e.addRoute("PATCH", path, handler)
 }
 
-func (e *Engine) executeChain(ctx *RumContext, chain HandlerChain) {
-	handler := chain[0]
-	handler(ctx)
-}
+//func (e *Engine) executeChain(ctx *RumContext, chain HandlerChain) {
+//	handler := chain[0]
+//	handler(ctx)
+//}
 
 func (e *Engine) Use(handler HandlerFunc) {
 	e.handlers = append(e.handlers, handler)
@@ -76,7 +76,10 @@ func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if route.Path == r.URL.Path {
 			chain := append(e.handlers, route.HandlerFunc)
 			ctx := NewRumContext(r, w, chain)
-			e.executeChain(ctx, chain)
+			exec := NewHandlerChainExecutor(ctx, chain)
+			exec.Begin()
+			exec.Complete()
+
 			return
 		}
 	}

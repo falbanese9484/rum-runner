@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/falbanese9484/rum"
+	"github.com/falbanese9484/rum-runner"
 )
 
 const (

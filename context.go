@@ -16,8 +16,9 @@ type RumContext struct {
 	R   *http.Request
 	W   http.ResponseWriter
 
-	handlers HandlerChain
-	index    int8
+	handlers   HandlerChain
+	index      int8
+	statusCode int
 }
 
 func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain) *RumContext {
@@ -59,6 +60,7 @@ func (rc *RumContext) RequestId() string {
 }
 
 func (rc *RumContext) JSON(code int, payload any) {
+	rc.statusCode = code
 	if rc.W == nil {
 		log.Printf("ResponseWriter is nil, cannot write response")
 		return
@@ -73,6 +75,7 @@ func (rc *RumContext) JSON(code int, payload any) {
 }
 
 func (rc *RumContext) String(code int, payload string) {
+	rc.statusCode = code
 	if rc.W == nil {
 		log.Printf("ResponseWriter is nil, cannot write response")
 		return
@@ -87,6 +90,7 @@ func (rc *RumContext) String(code int, payload string) {
 }
 
 func (rc *RumContext) HTML(code int, payload string) {
+	rc.statusCode = code
 	if rc.W == nil {
 		log.Printf("ResponseWriter is nil, cannot write response")
 		return
@@ -101,6 +105,7 @@ func (rc *RumContext) HTML(code int, payload string) {
 }
 
 func (rc *RumContext) Status(code int) {
+	rc.statusCode = code
 	if rc.W == nil {
 		log.Printf("ResponseWriter is nil, cannot write response")
 		return
