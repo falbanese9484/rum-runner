@@ -22,11 +22,13 @@ type RumContext struct {
 
 func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain) *RumContext {
 	uuid, err := NewUUID()
+	var ctx context.Context
 	if err != nil {
 		log.Printf("Failed to generate a unique ID for request - %s", err.Error())
-		// Kind of need to think about what to do here...
+		ctx = context.Background()
+	} else {
+		ctx = context.WithValue(context.Background(), RequestIDKey, uuid)
 	}
-	ctx := context.WithValue(context.Background(), RequestIDKey, uuid)
 	return &RumContext{
 		ctx: ctx,
 		R:   r,
