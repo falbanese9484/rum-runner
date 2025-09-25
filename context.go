@@ -19,9 +19,11 @@ type RumContext struct {
 	handlers   HandlerChain
 	index      int8
 	statusCode int
+	params     map[string]string
+	Path       string
 }
 
-func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain) *RumContext {
+func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain, params map[string]string, path string) *RumContext {
 	uuid, err := NewUUID()
 	var ctx context.Context
 	if err != nil {
@@ -37,7 +39,16 @@ func NewRumContext(r *http.Request, w http.ResponseWriter, handlers HandlerChain
 
 		handlers: handlers,
 		index:    0,
+		params:   params,
+		Path:     path,
 	}
+}
+
+func (rc *RumContext) Param(k string) string {
+	if _, ok := rc.params[k]; ok {
+		return rc.params[k]
+	}
+	return ""
 }
 
 func (rc *RumContext) Next() {

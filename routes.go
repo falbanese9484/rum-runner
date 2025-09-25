@@ -4,6 +4,8 @@ type RouteInfo struct {
 	Method      string
 	Path        string
 	Handler     string
+	Segments    []string
+	Params      []string
 	HandlerFunc HandlerFunc
 }
 

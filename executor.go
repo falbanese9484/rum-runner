@@ -31,7 +31,7 @@ func (exec *HandlerChainExecutor) Complete() {
 	if !exec.completed {
 		latency := time.Since(exec.startTime)
 		statusCode := exec.ctx.statusCode
-		log.Printf("[RUM] Request completed: status=%d, latency=%v", statusCode, latency)
+		log.Printf("[RUM] Request completed: path=%s, status=%d, latency=%v", exec.ctx.Path, statusCode, latency)
 		exec.completed = true
 	}
 }
